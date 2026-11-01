@@ -25,13 +25,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       systemInstruction
     );
 
-    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-transform');
-    res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
-    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-    res.end();
+    res.end(
+      `data: ${JSON.stringify({ chunk: text })}\n\n` +
+        `data: ${JSON.stringify({ done: true })}\n\n`
+    );
   } catch (error) {
     console.error('Gemini Vercel function error:', error);
-    res.status(500).json({ error: errorMessage(error) });
+    if (res.headersSent) {
+      res.end(`data: ${JSON.stringify({ error: errorMessage(error) })}\n\n`);
+    } else {
+      res.status(500).json({ error: errorMessage(error) });
+    }
   }
 }
