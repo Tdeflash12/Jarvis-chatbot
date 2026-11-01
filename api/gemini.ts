@@ -2,13 +2,15 @@ import { GoogleGenAI } from '@google/genai';
 
 export const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
-export const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-  httpOptions: {
-    timeout: 15000,
-    headers: { 'User-Agent': 'jarvis_abhesh' },
-  },
-});
+export function getAi(): GoogleGenAI {
+  return new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY || '',
+    httpOptions: {
+      timeout: 15000,
+      headers: { 'User-Agent': 'jarvis_abhesh' },
+    },
+  });
+}
 
 export function errorMessage(error: unknown): string {
   const value = error as { status?: number; message?: string } | null;
