@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { errorMessage, generateText } from '../gemini';
+import { errorMessage, generateText } from '../gemini.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
