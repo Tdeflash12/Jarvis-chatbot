@@ -16,6 +16,8 @@ const REQUEST_TIMEOUT_MS = 15000;
 
 app.use(express.json({ limit: '5mb' }));
 
+export { app };
+
 // Initialize GoogleGenAI client with required header
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || '',
@@ -270,7 +272,9 @@ async function bootstrap() {
   });
 }
 
-bootstrap().catch((err) => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  bootstrap().catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
