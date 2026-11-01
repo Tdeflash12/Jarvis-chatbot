@@ -1,0 +1,6 @@
+{
+  "name": "jarvis_abhesh",
+  "description": "A high-performance conversational AI workspace powered by Google Gemini with real-time streaming, conversation management, markdown rendering, and code syntax highlighting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
