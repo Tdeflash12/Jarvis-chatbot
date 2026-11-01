@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { errorMessage, getAi, model } from '../gemini';
+import { errorMessage, generateText } from '../gemini';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
@@ -25,20 +25,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
 
-    const ai = getAi();
-    const response = await ai.models.generateContent({
-      model,
-      contents: messages.map((message: { role: string; content: string }) => ({
+    const text = await generateText(
+      messages.map((message: { role: string; content: string }) => ({
         role: message.role === 'user' ? 'user' : 'model',
         parts: [{ text: message.content || '' }],
       })),
-      config: {
-        systemInstruction: systemInstruction?.trim() || undefined,
-      },
-    });
+      systemInstruction
+    );
 
-    if (response.text) {
-      res.write(`data: ${JSON.stringify({ chunk: response.text })}\n\n`);
+    if (text) {
+      res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
     }
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();

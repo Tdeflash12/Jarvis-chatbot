@@ -1,15 +1,51 @@
-import { GoogleGenAI } from '@google/genai';
-
 export const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
-export function getAi(): GoogleGenAI {
-  return new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY || '',
-    httpOptions: {
-      timeout: 15000,
-      headers: { 'User-Agent': 'jarvis_abhesh' },
-    },
-  });
+export type GeminiMessage = {
+  role: 'user' | 'model';
+  parts: [{ text: string }];
+};
+
+export async function generateText(
+  contents: GeminiMessage[],
+  systemInstruction?: string
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw Object.assign(new Error('Gemini API key is not configured.'), { status: 401 });
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: systemInstruction?.trim()
+            ? { parts: [{ text: systemInstruction.trim() }] }
+            : undefined,
+        }),
+        signal: controller.signal,
+      }
+    );
+    const payload = (await response.json()) as {
+      error?: { message?: string; status?: string };
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+
+    if (!response.ok) {
+      const error = new Error(payload.error?.message || `Gemini request failed (${response.status})`);
+      Object.assign(error, { status: response.status });
+      throw error;
+    }
+
+    return payload.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function errorMessage(error: unknown): string {
